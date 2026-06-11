@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yu-Gi-Oh! Domain DM Finder</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen p-6">
+
+    <div class="max-w-8xl mx-auto">
+        <header class="mb-8 text-center">
+            <h1 id="main-title" class="text-3xl font-bold text-blue-400 mb-2">Yu-Gi-Oh! Domain DM Finder</h1>
+            <p id="main-subtitle" class="text-gray-400">Busque monstros que pertencem ou mencionam Atributos e Tipos específicos.</p>
+        </header>
+
+        <div class="bg-gray-800 p-6 rounded-lg shadow-lg mb-8 border border-gray-700">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                
+                <div>
+                    <label id="label-attribute" class="block text-sm font-medium mb-2 text-gray-300">Atributos (Selecione um ou mais):</label>
+                    <select id="select-attribute" class="w-full bg-gray-700 border border-gray-600 rounded p-2 text-white focus:outline-none focus:border-blue-500 disabled:opacity-50" disabled>
+                        <option value="" disabled selected>Carregando atributos...</option>
+                    </select>
+                    <div id="container-attribute-tags" class="flex flex-wrap mt-2"></div>
+                </div>
+
+                <div>
+                    <label id="label-type" class="block text-sm font-medium mb-2 text-gray-300">Tipos (Selecione um ou mais):</label>
+                    <select id="select-type" class="w-full bg-gray-700 border border-gray-600 rounded p-2 text-white focus:outline-none focus:border-blue-500 disabled:opacity-50" disabled>
+                        <option value="" disabled selected>Carregando tipos...</option>
+                    </select>
+                    <div id="container-type-tags" class="flex flex-wrap mt-2"></div>
+                </div>
+
+                <div>
+                    <label id="label-archetype" class="block text-sm font-medium mb-2 text-gray-300">Arquétipos (Selecione um ou mais):</label>
+                    <select id="select-archetype" class="w-full bg-gray-700 border border-gray-600 rounded p-2 text-white focus:outline-none focus:border-blue-500 disabled:opacity-50" disabled>
+                        <option value="" disabled selected>Carregando arquétipos...</option>
+                    </select>
+                    <div id="container-archetype-tags" class="flex flex-wrap mt-2"></div>
+                </div>
+
+            </div>
+
+            <button id="btn-buscar" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded transition duration-200 cursor-pointer">
+                Buscar Cartas
+            </button>
+        </div>
+
+        <div id="status" class="text-center text-gray-400 my-4 hidden">Buscando na API do YGOPRODeck...</div>
+        
+        <div id="resultados" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6"></div>
+    </div>
+
+    <script src="assets/js/i18n.js"></script>
+    <script src="assets/js/app.js"></script>
+</body>
+</html>

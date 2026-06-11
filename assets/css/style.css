@@ -1,0 +1,50 @@
+/* Configuração base do Sprite Reduzido (32x32px) */
+.icon-attribute {
+    display: inline-block;
+    width: 32px;  
+    height: 32px; 
+    background-image: url('atributos-sprite.png');
+    background-repeat: no-repeat;
+    background-size: auto 96px; /* Trava a altura total em 3 linhas x 32px = 96px */
+}
+
+/* --- map de recorte 32px --- */
+
+/* LINHA 1 (Y: 0px) */
+.icon-wind    { background-position: 0px 0px; }
+.icon-water   { background-position: -32px 0px; } 
+.icon-earth   { background-position: -64px 0px; } 
+
+/* LINHA 2 (Y: -32px) */
+.icon-fire    { background-position: 0px -32px; }
+.icon-dark    { background-position: -32px -32px; }
+.icon-light   { background-position: -64px -32px; }
+
+/* LINHA 3 (Y: -64px) */
+.icon-divine  { background-position: 0px -64px; }
+
+/* Borda com efeito de destaque para os resultados ideais */
+.borda-destaque {
+    border: 2px solid #fbbf24; 
+    box-shadow: 0 0 15px rgba(251, 191, 36, 0.2);
+}
+
+/* Estilo das tags de filtro */
+.tag {
+    display: inline-flex;
+    align-items: center;
+    background-color: #3b82f6;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    margin: 0.25rem;
+}
+.tag button {
+    background: none;
+    border: none;
+    color: white;
+    margin-left: 0.5rem;
+    cursor: pointer;
+    font-weight: bold;
+}

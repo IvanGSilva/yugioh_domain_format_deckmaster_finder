@@ -1,0 +1,264 @@
+let todasAsCartas = []; 
+const filtros = {
+    attributes: [],
+    types: [],
+    archetypes: []
+};
+
+const selectAttribute = document.getElementById('select-attribute');
+const selectType = document.getElementById('select-type');
+const selectArchetype = document.getElementById('select-archetype');
+const containerAttrTags = document.getElementById('container-attribute-tags');
+const containerTypeTags = document.getElementById('container-type-tags');
+const containerArchetypeTags = document.getElementById('container-archetype-tags');
+const btnBuscar = document.getElementById('btn-buscar');
+const statusDiv = document.getElementById('status');
+const resultadosDiv = document.getElementById('resultados');
+
+// tradução
+function aplicarTraducoesUI() {
+    if (document.getElementById('main-title')) {
+        document.getElementById('main-title').innerText = txt.titulo;
+    }
+    if (document.getElementById('main-subtitle')) {
+        document.getElementById('main-subtitle').innerText = idiomaAtivo === 'pt' 
+            ? "Busque monstros que pertencem ou mencionam Atributos e Tipos específicos." 
+            : "Search for monsters that belong to or mention specific Attributes and Types.";
+    }
+    if (document.getElementById('label-attribute')) {
+        document.getElementById('label-attribute').innerText = txt.labelAtributo;
+    }
+    if (document.getElementById('label-type')) {
+        document.getElementById('label-type').innerText = txt.labelTipo;
+    }
+    if (document.getElementById('label-archetype')) {
+        document.getElementById('label-archetype').innerText = txt.labelArquetipo;
+    }
+    if (btnBuscar) {
+        btnBuscar.innerText = txt.btnBuscar;
+    }
+}
+
+// botao de atualização
+const header = document.querySelector('header');
+const btnAtualizarLocal = document.createElement('button');
+btnAtualizarLocal.className = "mt-3 text-xs bg-gray-800 hover:bg-gray-700 text-gray-400 py-1 px-3 rounded border border-gray-600 transition cursor-pointer block mx-auto";
+btnAtualizarLocal.id = "btn-atualizar-local";
+btnAtualizarLocal.innerText = txt.btnSincronizar;
+header.appendChild(btnAtualizarLocal);
+
+async function inicializarAplicacao() {
+    aplicarTraducoesUI();
+    
+    try {
+        statusDiv.classList.remove('hidden');
+        statusDiv.innerText = txt.statusVerificando;
+        btnBuscar.disabled = true;
+
+        // backend local
+        const resposta = await fetch('http://localhost:3000/api/cartas');
+        todasAsCartas = await resposta.json();
+
+        populaDropdowns();
+        
+        statusDiv.innerText = txt.statusPronto;
+        setTimeout(() => statusDiv.classList.add('hidden'), 1500);
+        btnBuscar.disabled = false;
+
+    } catch (erro) {
+        console.error("Erro ao inicializar:", erro);
+        statusDiv.innerText = txt.statusErroNode;
+    }
+}
+
+// sincronização manual
+btnAtualizarLocal.addEventListener('click', async () => {
+    if (!confirm(txt.alertConfirmSinc)) return;
+
+    try {
+        statusDiv.classList.remove('hidden');
+        statusDiv.innerText = txt.statusSincronizando;
+        btnBuscar.disabled = true;
+
+        const resposta = await fetch('http://localhost:3000/api/cartas/sincronizar', { method: 'POST' });
+        const resultado = await resposta.json();
+
+        if (resposta.ok) {
+            const mensagemSucesso = idiomaAtivo === 'pt'
+                ? `${resultado.mensagem} Total de monstros: ${resultado.total}`
+                : `${resultado.mensagem} Total monsters: ${resultado.total}`;
+            alert(mensagemSucesso);
+            
+            inicializarAplicacao();
+        } else {
+            throw new Error(resultado.erro);
+        }
+    } catch (erro) {
+        const mensagemFalha = idiomaAtivo === 'pt' ? "Falha ao sincronizar: " : "Sync failed: ";
+        alert(mensagemFalha + erro.message);
+        statusDiv.classList.add('hidden');
+        btnBuscar.disabled = false;
+    }
+});
+
+document.addEventListener('DOMContentLoaded', inicializarAplicacao);
+
+// dropdowns
+function populaDropdowns() {
+    const atributosUnicos = new Set();
+    const tiposUnicos = new Set();
+    const arquetiposUnicos = new Set();
+
+    todasAsCartas.forEach(carta => {
+        if (carta.attribute) atributosUnicos.add(carta.attribute.toUpperCase());
+        if (carta.race) tiposUnicos.add(carta.race);
+        if (carta.archetype) arquetiposUnicos.add(carta.archetype);
+    });
+
+    // atributos
+    selectAttribute.innerHTML = `<option value="" disabled selected>${txt.placeholderAtributo}</option>`;
+    Array.from(atributosUnicos).sort().forEach(attr => {
+        const option = document.createElement('option');
+        option.value = attr.toLowerCase();
+        option.textContent = attr;
+        selectAttribute.appendChild(option);
+    });
+    selectAttribute.disabled = false;
+
+    // tipo
+    selectType.innerHTML = `<option value="" disabled selected>${txt.placeholderTipo}</option>`;
+    Array.from(tiposUnicos).sort().forEach(tipo => {
+        const option = document.createElement('option');
+        option.value = tipo.toLowerCase();
+        option.textContent = tipo;
+        selectType.appendChild(option);
+    });
+    selectType.disabled = false;
+
+    // arquetipo
+    selectArchetype.innerHTML = `<option value="" disabled selected>${txt.placeholderArquetipo}</option>`;
+    Array.from(arquetiposUnicos).sort().forEach(arq => {
+        const option = document.createElement('option');
+        option.value = arq.toLowerCase();
+        option.textContent = arq;
+        selectArchetype.appendChild(option);
+    });
+    selectArchetype.disabled = false;
+}
+
+function atualizarTagsUI(tipo) {
+    let container = tipo === 'attributes' ? containerAttrTags : (tipo === 'types' ? containerTypeTags : containerArchetypeTags);
+    container.innerHTML = '';
+    filtros[tipo].forEach(valor => {
+        const tagSpan = document.createElement('span');
+        tagSpan.className = 'tag';
+        tagSpan.innerHTML = `${valor.toUpperCase()} <button onclick="removerTag('${tipo}', '${valor}')">&times;</button>`;
+        container.appendChild(tagSpan);
+    });
+}
+
+function adicionarTag(tipo, valor) {
+    if (valor && !filtros[tipo].includes(valor)) {
+        filtros[tipo].push(valor);
+        atualizarTagsUI(tipo);
+    }
+}
+
+window.removerTag = function(tipo, valor) {
+    filtros[tipo] = filtros[tipo].filter(v => v !== valor);
+    atualizarTagsUI(tipo);
+}
+
+selectAttribute.addEventListener('change', (e) => { adicionarTag('attributes', e.target.value); e.target.value = ''; });
+selectType.addEventListener('change', (e) => { adicionarTag('types', e.target.value); e.target.value = ''; });
+selectArchetype.addEventListener('change', (e) => { adicionarTag('archetypes', e.target.value); e.target.value = ''; });
+
+// filtro
+btnBuscar.addEventListener('click', () => {
+    if (filtros.attributes.length === 0 && filtros.types.length === 0 && filtros.archetypes.length === 0) {
+        alert(txt.alertCriterio);
+        return;
+    }
+
+    statusDiv.classList.remove('hidden');
+    statusDiv.innerText = txt.statusFiltrando;
+    resultadosDiv.innerHTML = '';
+
+    const cartasFiltradas = todasAsCartas.filter(carta => {
+        const texto = carta.desc ? carta.desc.toLowerCase() : "";
+        const atributoCarta = carta.attribute ? carta.attribute.toLowerCase() : "";
+        const tipoCarta = carta.race ? carta.race.toLowerCase() : ""; 
+        const arquetipoCarta = carta.archetype ? carta.archetype.toLowerCase() : "";
+
+        const atendeAtributo = filtros.attributes.length === 0 || filtros.attributes.some(attr => {
+            if (atributoCarta === attr) return true;
+            return new RegExp(`\\b${attr}\\b`, 'i').test(texto);
+        });
+
+        const atendeTipo = filtros.types.length === 0 || filtros.types.some(tipo => {
+            if (tipoCarta === tipo) return true;
+            return new RegExp(`\\b${tipo}\\b`, 'i').test(texto);
+        });
+
+        const atendeArquetipo = filtros.archetypes.length === 0 || filtros.archetypes.some(arq => {
+            if (arquetipoCarta === arq) return true;
+            const arqEscapado = arq.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+            return new RegExp(`\\b${arqEscapado}\\b`, 'i').test(texto);
+        });
+
+        return atendeAtributo && atendeTipo && atendeArquetipo;
+    });
+
+    renderizarResultados(cartasFiltradas);
+    statusDiv.classList.add('hidden');
+});
+
+// render
+function renderizarResultados(cartas) {
+    if (cartas.length === 0) {
+        resultadosDiv.innerHTML = `<p class="text-center text-gray-500 col-span-full">${txt.nenhumaCarta}</p>`;
+        return;
+    }
+
+    const atributosTopo = ['water', 'light', 'dark'];
+    const tiposTopo = ['warrior', 'spellcaster', 'fiend'];
+
+    cartas.sort((a, b) => {
+        const aEhDestaque = atributosTopo.includes(a.attribute.toLowerCase()) && tiposTopo.includes(a.race.toLowerCase());
+        const bEhDestaque = atributosTopo.includes(b.attribute.toLowerCase()) && tiposTopo.includes(b.race.toLowerCase());
+        if (aEhDestaque && !bEhDestaque) return -1;
+        if (!aEhDestaque && bEhDestaque) return 1;
+        return 0;
+    });
+
+    const textoContador = txt.contadorCartas.replace('{total}', cartas.length);
+    resultadosDiv.innerHTML = `<p class="text-sm text-gray-400 col-span-full mb-2">${textoContador}</p>`;
+
+    cartas.forEach(carta => {
+        const cardElement = document.createElement('div');
+        const attrLower = carta.attribute ? carta.attribute.toLowerCase() : '';
+        const tipoLower = carta.race ? carta.race.toLowerCase() : '';
+
+        const ehDestaque = atributosTopo.includes(attrLower) && tiposTopo.includes(tipoLower);
+        
+        cardElement.className = ehDestaque 
+            ? 'bg-gray-800 p-5 rounded-lg shadow-md border-l-4 flex flex-col justify-between borda-destaque transition transform hover:scale-102'
+            : 'bg-gray-800 p-5 rounded-lg shadow-md border-l-4 border-blue-500 flex flex-col justify-between transition transform hover:scale-102';
+
+        const tagIconeAtributo = carta.attribute
+            ? `<span class="icon-attribute icon-${attrLower}" title="${carta.attribute.toUpperCase()}"></span>`
+            : '';
+
+        cardElement.innerHTML = `
+            <div>
+                <div class="mb-1 block">
+                    ${tagIconeAtributo}
+                </div>
+                <h3 class="text-lg font-bold text-white mb-1 leading-tight">${carta.name}</h3>
+                ${carta.archetype ? `<span class="text-xs font-semibold text-blue-400 block mb-3 uppercase tracking-wider">${carta.archetype}</span>` : ''}
+                <p class="text-gray-300 text-xs whitespace-pre-line leading-relaxed">${carta.desc}</p>
+            </div>
+        `;
+        resultadosDiv.appendChild(cardElement);
+    });
+}
