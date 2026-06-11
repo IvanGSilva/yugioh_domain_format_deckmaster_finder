@@ -48,3 +48,22 @@
     cursor: pointer;
     font-weight: bold;
 }
+
+/* Estilo geral para os destaques */
+#resultados b {
+    font-weight: 700;
+    color: #f59e0b;
+}
+
+/* Estilo específico para quando o destaque estiver na descrição */
+#resultados p b {
+    background-color: rgba(245, 158, 11, 0.1); 
+    padding: 0 2px;
+    border-radius: 2px;
+}
+
+/* Estilo específico para quando o destaque estiver no título (remove o fundo) */
+#resultados h3 b {
+    background-color: transparent;
+    padding: 0;
+}

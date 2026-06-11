@@ -213,6 +213,27 @@ btnBuscar.addEventListener('click', () => {
     statusDiv.classList.add('hidden');
 });
 
+// destaque da presença dos termos buscados
+function destacarTermos(texto, filtrosAtivos) {
+    if (!texto) return "";
+    
+    const todosTermos = [
+        ...filtrosAtivos.attributes,
+        ...filtrosAtivos.types,
+        ...filtrosAtivos.archetypes
+    ].filter(Boolean);
+
+    if (todosTermos.length === 0) return texto;
+
+    const termosEscapados = todosTermos
+        .map(termo => termo.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'))
+        .sort((a, b) => b.length - a.length);
+
+    const regex = new RegExp(`(${termosEscapados.join('|')})`, 'gi');
+
+    return texto.replace(regex, '<b>$1</b>');
+}
+
 // render
 function renderizarResultados(cartas) {
     if (cartas.length === 0) {
@@ -297,9 +318,10 @@ function renderizarResultados(cartas) {
                 <div class="flex justify-between items-start mb-2">
                     ${tagIconeAtributo}
                     ${tagNivel} </div>
-                <h3 class="text-lg font-bold text-white mb-1 leading-tight">${carta.name}</h3>
-                ${carta.archetype ? `<span class="text-xs font-semibold text-blue-400 block mb-3 uppercase tracking-wider">${carta.archetype}</span>` : ''}
-                <p class="text-gray-300 text-xs whitespace-pre-line leading-relaxed">${carta.desc}</p>
+                    ${carta.archetype ? `<span class="text-xs font-semibold text-blue-400 block mb-3 uppercase tracking-wider">${carta.archetype}</span>` : ''}
+                <h3 class="text-lg font-bold text-white mb-1 leading-tight">${destacarTermos(carta.name, filtros)}</h3>
+                ${carta.race ? `<span class="text-xs font-semibold text-white-400 block mb-3 uppercase tracking-wider">${carta.race}</span>` : ''}
+                <p class="text-gray-300 text-xs whitespace-pre-line leading-relaxed">${destacarTermos(carta.desc, filtros)}</p>
             </div>
         `;
         resultadosDiv.appendChild(cardElement);
