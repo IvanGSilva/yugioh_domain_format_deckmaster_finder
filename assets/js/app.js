@@ -272,11 +272,25 @@ function renderizarResultados(cartas) {
             : '';
 
         // nivel
-        const tagNivel = carta.level && carta.level > 0
-            ? `<span class="text-xs font-bold text-amber-400 bg-amber-950/40 px-2 py-0.5 rounded border border-amber-800/50 flex items-center gap-1 w-max">
-                ⭐ LV ${carta.level}
-            </span>`
-            : '';
+        let tagNivel = '';
+
+        if (carta.level && carta.level > 0) {
+            const tipo = carta.levelType || 'LV';
+            
+            if (tipo === 'RK') {
+                tagNivel = `<span class="text-xs font-bold text-yellow-400 bg-gray-950 px-2 py-0.5 rounded border border-yellow-600/70 flex items-center gap-1 w-max shadow" title="Rank">
+                    ⬛ RK ${carta.level}
+                </span>`;
+            } else if (tipo === 'LK') {
+                tagNivel = `<span class="text-xs font-bold text-cyan-400 bg-cyan-950/50 px-2 py-0.5 rounded border border-cyan-500/50 flex items-center gap-1 w-max shadow" title="Link Rating">
+                    🔹 LK ${carta.level}
+                </span>`;
+            } else {
+                tagNivel = `<span class="text-xs font-bold text-amber-400 bg-amber-950/40 px-2 py-0.5 rounded border border-amber-800/50 flex items-center gap-1 w-max" title="Level">
+                    ⭐ LV ${carta.level}
+                </span>`;
+            }
+        }
 
         cardElement.innerHTML = `
             <div>

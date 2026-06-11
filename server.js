@@ -34,10 +34,20 @@ async function sincronizarDadosComAPI() {
         .filter(carta => carta.type && carta.type.toLowerCase().includes('monster'))
         .map(carta => {
             
-            let nivelMonstro = 0;
-            if (carta.level !== undefined) nivelMonstro = carta.level;
-            else if (carta.rank !== undefined) nivelMonstro = carta.rank;
-            else if (carta.linkval !== undefined) nivelMonstro = carta.linkval;
+            //padrao nivel
+            let valorEscala = carta.level ?? 0;
+            let tipoEscala = 'LV';
+            const tipoCarta = carta.frameType;
+
+            // xyz rank
+            if (tipoCarta.includes('xyz')) {
+                tipoEscala = 'RK';
+            } 
+            // link rating
+            else if (carta.linkval !== undefined && carta.linkval !== null) {
+                valorEscala = carta.linkval;
+                tipoEscala = 'LK';
+            }
 
             return {
                 name: carta.name,
@@ -45,7 +55,8 @@ async function sincronizarDadosComAPI() {
                 attribute: carta.attribute || "",
                 race: carta.race || "",
                 archetype: carta.archetype || "",
-                level: nivelMonstro
+                level: valorEscala,
+                levelType: tipoEscala
             };
         });
 
@@ -76,11 +87,26 @@ app.get('/api/cartas', async (req, res) => {
 // atualização
 app.post('/api/cartas/sincronizar', async (req, res) => {
     try {
-        const novosDados = await sincronizarDadosComAPI();
-        res.json({ mensagem: "Sincronização concluída com sucesso!", total: novosDados.length });
+        console.log("Solicitação recebida: Forçando limpeza do cartas.json...");
+
+        if (fs.existsSync(FILE_PATH)) {
+            fs.unlinkSync(FILE_PATH);
+            console.log("Arquivo cartas.json antigo deletado com sucesso.");
+        }
+
+        const novasCartas = await sincronizarDadosComAPI();
+
+        res.json({
+            mensagem: "Banco de dados limpo e atualizado com sucesso!",
+            total: novasCartas.length
+        });
+
     } catch (erro) {
-        console.error(erro);
-        res.status(500).json({ erro: "Falha ao atualizar dados com a API externa." });
+        console.error("Erro ao processar sincronização forçada:", erro);
+        res.status(500).json({ 
+            erro: "Erro interno ao reescrever o banco de dados.", 
+            detalhes: erro.message 
+        });
     }
 });
 
