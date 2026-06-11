@@ -1,0 +1,13 @@
+# Dependências do Node.js (nunca devem ir para o GitHub)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Arquivo de dados gerado automaticamente pelo servidor
+assets/data/cartas.json
+
+# Arquivos de configuração do sistema operacional / IDEs
+.DS_Store
+.vscode/
+.idea/
