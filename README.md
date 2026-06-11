@@ -31,7 +31,7 @@ YUGIOH_DOMAIN_FORMAT_DECKMASTER_FINDER/
 │   │   ├── style.css
 │   │   └── atributos-sprite.png  # Sprite Sheet dos Atributos
 │   ├── data/
-│   │   └── cartas.json          # Banco de dados gerado automaticamente (Ignorado no Git)
+│   │   └── cartas.json          # Banco de dados gerado automaticamente (Vai ser gerado automaticamente)
 │   └── js/
 │       ├── i18n.js               # Dicionários de tradução e detecção de idioma
 │       └── app.js                # Lógica principal, manipulação do DOM e Regex
