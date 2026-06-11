@@ -220,12 +220,33 @@ function renderizarResultados(cartas) {
         return;
     }
 
-    const atributosTopo = ['water', 'light', 'dark'];
-    const tiposTopo = ['warrior', 'spellcaster', 'fiend'];
+    // logica de destaque dos resultados que correspondem a todas as buscas feitas
+    const checarDestaquePerfeito = (carta) => {
+        const texto = carta.desc ? carta.desc.toLowerCase() : "";
+        const atributoCarta = carta.attribute ? carta.attribute.toLowerCase() : "";
+        const tipoCarta = carta.race ? carta.race.toLowerCase() : "";
 
+        // Se o usuário não filtrou nada daquela categoria, passa direto
+        const bateuTodosAtributos = filtros.attributes.length === 0 || filtros.attributes.every(attr => {
+            if (atributoCarta === attr) return true;
+            return new RegExp(`\\b${attr}\\b`, 'i').test(texto);
+        });
+
+        const bateuTodosTipos = filtros.types.length === 0 || filtros.types.every(tipo => {
+            if (tipoCarta === tipo) return true;
+            return new RegExp(`\\b${tipo}\\b`, 'i').test(texto);
+        });
+
+        // Caso especial para evitar destacar "tudo" se o usuário buscar só por arquétipo vazio
+        const usouFiltrosPrincipais = filtros.attributes.length > 0 || filtros.types.length > 0;
+
+        return usouFiltrosPrincipais && bateuTodosAtributos && bateuTodosTipos;
+    };
+
+    // ordenação do destaque
     cartas.sort((a, b) => {
-        const aEhDestaque = atributosTopo.includes(a.attribute.toLowerCase()) && tiposTopo.includes(a.race.toLowerCase());
-        const bEhDestaque = atributosTopo.includes(b.attribute.toLowerCase()) && tiposTopo.includes(b.race.toLowerCase());
+        const aEhDestaque = checarDestaquePerfeito(a);
+        const bEhDestaque = checarDestaquePerfeito(b);
         if (aEhDestaque && !bEhDestaque) return -1;
         if (!aEhDestaque && bEhDestaque) return 1;
         return 0;
@@ -234,26 +255,34 @@ function renderizarResultados(cartas) {
     const textoContador = txt.contadorCartas.replace('{total}', cartas.length);
     resultadosDiv.innerHTML = `<p class="text-sm text-gray-400 col-span-full mb-2">${textoContador}</p>`;
 
+    // render das cartas
     cartas.forEach(carta => {
         const cardElement = document.createElement('div');
         const attrLower = carta.attribute ? carta.attribute.toLowerCase() : '';
-        const tipoLower = carta.race ? carta.race.toLowerCase() : '';
-
-        const ehDestaque = atributosTopo.includes(attrLower) && tiposTopo.includes(tipoLower);
+        
+        // borda para destaque
+        const ehDestaque = checarDestaquePerfeito(carta);
         
         cardElement.className = ehDestaque 
-            ? 'bg-gray-800 p-5 rounded-lg shadow-md border-l-4 flex flex-col justify-between borda-destaque transition transform hover:scale-102'
+            ? 'bg-gray-800 p-5 rounded-lg shadow-md border-l-4 flex flex-col justify-between borda-destaque transition transform hover:scale-102 border-amber-500 ring-1 ring-amber-500/30' // Destaque Dourado/Âmbar para o Match Perfeito
             : 'bg-gray-800 p-5 rounded-lg shadow-md border-l-4 border-blue-500 flex flex-col justify-between transition transform hover:scale-102';
 
         const tagIconeAtributo = carta.attribute
             ? `<span class="icon-attribute icon-${attrLower}" title="${carta.attribute.toUpperCase()}"></span>`
             : '';
 
+        // nivel
+        const tagNivel = carta.level && carta.level > 0
+            ? `<span class="text-xs font-bold text-amber-400 bg-amber-950/40 px-2 py-0.5 rounded border border-amber-800/50 flex items-center gap-1 w-max">
+                ⭐ LV ${carta.level}
+            </span>`
+            : '';
+
         cardElement.innerHTML = `
             <div>
-                <div class="mb-1 block">
+                <div class="flex justify-between items-start mb-2">
                     ${tagIconeAtributo}
-                </div>
+                    ${tagNivel} </div>
                 <h3 class="text-lg font-bold text-white mb-1 leading-tight">${carta.name}</h3>
                 ${carta.archetype ? `<span class="text-xs font-semibold text-blue-400 block mb-3 uppercase tracking-wider">${carta.archetype}</span>` : ''}
                 <p class="text-gray-300 text-xs whitespace-pre-line leading-relaxed">${carta.desc}</p>

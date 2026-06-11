@@ -18,22 +18,36 @@ function garantirDiretorio(filePath) {
 }
 
 async function sincronizarDadosComAPI() {
-    
     const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
     
     console.log("Buscando dados atualizados da API externa...");
     const resposta = await fetch('https://db.ygoprodeck.com/api/v7/cardinfo.php');
     const dados = await resposta.json();
 
+    if (!dados || !dados.data || !Array.isArray(dados.data)) {
+        throw new Error("A API externa não retornou os dados no formato esperado ou está fora do ar temporariamente.");
+    }
+
+    console.log(`Dados recebidos da API (${dados.data.length} cartas brutas). Otimizando banco de dados...`);
+
     const cartasOtimizadas = dados.data
-        .filter(carta => carta.type.toLowerCase().includes('monster'))
-        .map(carta => ({
-            name: carta.name,
-            desc: carta.desc || "",
-            attribute: carta.attribute || "",
-            race: carta.race || "",
-            archetype: carta.archetype || ""
-        }));
+        .filter(carta => carta.type && carta.type.toLowerCase().includes('monster'))
+        .map(carta => {
+            
+            let nivelMonstro = 0;
+            if (carta.level !== undefined) nivelMonstro = carta.level;
+            else if (carta.rank !== undefined) nivelMonstro = carta.rank;
+            else if (carta.linkval !== undefined) nivelMonstro = carta.linkval;
+
+            return {
+                name: carta.name,
+                desc: carta.desc || "",
+                attribute: carta.attribute || "",
+                race: carta.race || "",
+                archetype: carta.archetype || "",
+                level: nivelMonstro
+            };
+        });
 
     garantirDiretorio(FILE_PATH);
     fs.writeFileSync(FILE_PATH, JSON.stringify(cartasOtimizadas, null, 2), 'utf-8');
