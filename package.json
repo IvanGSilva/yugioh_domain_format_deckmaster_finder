@@ -1,0 +1,17 @@
+{
+  "name": "yugioh_domain_format_deckmaster_finder",
+  "version": "1.0.0",
+  "description": "simple deckmaster finder for yugioh domain format",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "node-fetch": "^3.3.2"
+  }
+}
